@@ -126,10 +126,6 @@ public class DBRoomFileUploadController {
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFileName);
             response.setHeader(HttpHeaders.CONTENT_TYPE,"application/octet-stream");
 
-
-
-
-
             IPFSUtils.writeToResponseStreamConcurrently3(dbFile, response);
             System.out.println(response.getHeader(HttpHeaders.CONTENT_DISPOSITION));
             return ResponseEntity.ok().build();

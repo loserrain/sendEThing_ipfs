@@ -29,7 +29,13 @@ public class FileNameResponse {
         this.fileSize = size;
         this.createdAt = createdAt;
         this.timeLeft = timeLeft;
-
+    }
+    public FileNameResponse(String name, String verificationCode, long size,  LocalDateTime createdAt){
+        this.fileName = name;
+        this.verificationCode = verificationCode;
+        this.fileSize = size;
+        this.createdAt = createdAt;
 
     }
+
 }

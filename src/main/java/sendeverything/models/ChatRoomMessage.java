@@ -1,14 +1,11 @@
-package sendeverything.payload.request;
+package sendeverything.models;
 
 import jakarta.persistence.Id;
 import lombok.*;
 import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import sendeverything.models.MessageType;
-import sendeverything.models.User;
 
-import java.sql.Blob;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,10 +13,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChatMessage {
+@Document
+public class ChatRoomMessage {
+    @Id
+    private String id;
     private MessageType type;
     private String content;
     private String sender;
     private String roomCode;
+    @Indexed(direction = IndexDirection.DESCENDING)
+    private LocalDateTime timestamp;  // 自動設置當前時間為消息時間
 
+    // 省略其他屬性的getter和setter
 }

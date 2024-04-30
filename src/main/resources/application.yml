@@ -52,8 +52,14 @@ spring:
       expire-time: 180000000 # 原来的180 * 1000000
       filename: test
   data:
+    mongodb:
+      uri: mongodb://root:0000@localhost:27017/chatdb?authSource=admin
+
     redis:
       host: localhost
+  artemis:
+    embedded:
+      data-directory:
 
 
 bezkoder:

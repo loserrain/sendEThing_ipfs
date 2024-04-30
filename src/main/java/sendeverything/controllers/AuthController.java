@@ -26,8 +26,8 @@ import java.sql.SQLException;
 import java.util.Base64;
 
 //for Angular Client (withCredentials)
-//@CrossOrigin(origins = "http://localhost:8080, http://localhost:8081, http://localhost:8080", maxAge = 3600, allowCredentials="true")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:8080, http://localhost:8081, http://localhost:8080", maxAge = 3600, allowCredentials="true")
+//@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -36,13 +36,7 @@ public class AuthController {
   private final AuthenticationService service;
   private final JwtUtils jwtUtils;
   private final WebClient webClient;
-  public Mono<String> getImageAsBase64(String imageUrl) {
-    return webClient.get()
-            .uri(imageUrl)
-            .retrieve()
-            .bodyToMono(byte[].class)
-            .map(bytes -> Base64.getEncoder().encodeToString(bytes)); // Convert to Base64 string
-  }
+
 
 
 //  @GetMapping("/oauth2/redirect")

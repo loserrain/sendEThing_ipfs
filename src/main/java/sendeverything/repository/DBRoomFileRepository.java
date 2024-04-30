@@ -8,6 +8,7 @@ import sendeverything.models.DatabaseFile;
 import sendeverything.models.FileNameAndVerifyCodeProjection;
 import sendeverything.models.room.DBRoomFile;
 import sendeverything.models.room.DBRoomFileChunk;
+import sendeverything.models.room.Room;
 
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +21,7 @@ public interface DBRoomFileRepository extends JpaRepository<DBRoomFile, Long> {
     Optional<DBRoomFile>findByFileIdAndRoom_RoomCode(String fileId, String roomCode);
     Optional<DBRoomFile> findByFileId(String fileId);
     Optional<DBRoomFile> findByVerificationCode(String verificationCode);
+    List<DBRoomFile>findAllByRoom(Room room);
 
 
 

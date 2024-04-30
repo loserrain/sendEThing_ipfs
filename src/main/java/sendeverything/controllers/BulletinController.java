@@ -16,7 +16,9 @@ import sendeverything.payload.response.RoomCodeResponse;
 import sendeverything.payload.response.RoomContentResponse;
 import sendeverything.payload.response.RoomResponse;
 import sendeverything.repository.UserRepository;
+import sendeverything.security.services.AuthenticationService;
 import sendeverything.service.room.BulletinService;
+import sendeverything.service.room.ChatRoomService;
 import software.amazon.awssdk.services.s3.model.MultipartUpload;
 
 import java.security.Principal;
@@ -33,28 +35,60 @@ public class BulletinController {
     private  BulletinService bulletinService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ChatRoomService chatRoomService;
+    @Autowired
+    private AuthenticationService authenticationService;
+
 
 
     @PostMapping("/createRoom")
-    public RoomCodeResponse createRoom(@RequestParam String title,
+    public ResponseEntity<?> createRoom(@RequestParam String title,
                                        @RequestParam RoomType roomType,
                                        @RequestParam String roomDescription,
                                        @RequestParam String roomPassword,
                                        @RequestParam MultipartFile roomImage,
                                        @RequestParam BoardType boardType,
                                        Principal principal) throws Exception {
+        System.out.println("title: "+boardType);
         Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
+
         System.out.println("optionalUser: "+optionalUser);
 
-        String roomCode =bulletinService.saveRoom(title,roomDescription,roomPassword,roomImage,optionalUser, roomType,boardType);
+        if (!(roomType.equals(RoomType.SECRET))) {
+            String roomCode = bulletinService.saveRoom(title, roomDescription, roomPassword, roomImage, optionalUser, roomType, boardType);
+
+            return ResponseEntity.ok(new RoomCodeResponse(roomCode)) ;
+        }else{
+            assert principal != null;
+            String username= principal.getName();
+            Blob image= authenticationService.convertBase64ToBlob(authenticationService.getProfileImageBase64(username));
+            String roomCode = bulletinService.saveSecretRoom(title, roomDescription, roomPassword, image, optionalUser, roomType, boardType);
+
+
+            Room room = bulletinService.findByRoomCode1(roomCode);
+            if(bulletinService.isAlreadyJoined(optionalUser.orElse(null),room)){
+                return ResponseEntity.ok("Create Room Success: "+roomCode);
+            }
+            bulletinService.joinRoom(optionalUser.orElse(null),room );
+
+            return ResponseEntity.ok(new RoomCodeResponse(roomCode)) ;
+
+        }
 
 
 
-        return new RoomCodeResponse(roomCode);
     }
     @PostMapping("/getAllRooms")
     public ResponseEntity<List<RoomResponse>> getAllRooms(Principal principal,@RequestBody BoardRequest boardRequest) {
         BoardType boardType = boardRequest.getBoardType();
+//        String username1 = principal.getName();
+//        List<UserRoom>userRooms= chatRoomService.getRoomsByUser(username1);
+//        for (UserRoom userRoom : userRooms) {
+//            System.out.println("user"+userRoom.getRoom().getRoomCode());
+//
+//        }
+
         List<RoomResponse> roomResponses = bulletinService.getRoomsByType(principal,boardType);
         System.out.println("roomResponses: "+roomResponses);
         return ResponseEntity.ok(roomResponses);
@@ -71,6 +105,10 @@ public class BulletinController {
         RoomResponse roomResponse = bulletinService.accessRoom(roomCode, password);
         System.out.println("roomResponse: "+roomRequest);
         if(roomType.equals("PUBLIC")){
+            if(bulletinService.isAlreadyJoined(optionalUser.orElse(null),room)){
+                return ResponseEntity.ok("Access Room Success: "+roomCode);
+            }
+            bulletinService.joinRoom(optionalUser.orElse(null),room );
             return ResponseEntity.ok("Access Room Success: "+roomCode);
         }
         if (roomResponse != null ) {
@@ -82,6 +120,9 @@ public class BulletinController {
 
             cookie.setMaxAge(60 * 60 ); // 設置 cookie 的有效期，例如這裡是一個小時
             response.addCookie(cookie);
+            if(bulletinService.isAlreadyJoined(optionalUser.orElse(null),room)){
+                return ResponseEntity.ok("Access Room Success: "+roomCode);
+            }
             bulletinService.joinRoom(optionalUser.orElse(null),room );
             System.out.println("cookie: "+cookie.getValue());
             return ResponseEntity.ok("Access Room Success: "+roomCode);

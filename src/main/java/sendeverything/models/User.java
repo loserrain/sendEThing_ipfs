@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import sendeverything.models.room.UserRoom;
 
 @Data
 @NoArgsConstructor
@@ -53,6 +54,8 @@ public class User {
   @Lob
   private Blob profileImage;
   private String imgUrl;
+
+
 
   public User(String username, String email, String password,Provider provider,Blob profileImage) {
     this.username = username;

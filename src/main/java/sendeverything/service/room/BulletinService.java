@@ -76,6 +76,20 @@ public class BulletinService {
         return room.getRoomCode();
     }
 
+
+
+    public String saveSecretRoom(String title, String roomDescription , String roomPassword , Blob roomImage , Optional<User> user, RoomType roomType, BoardType boardType) throws Exception {
+        LocalDateTime createTime = LocalDateTime.now();
+        LocalDateTime newTime = createTime.plusHours(8);
+
+
+
+        Room room = new Room(generateRoomCode(),title,roomDescription,roomPassword,roomImage,roomType,boardType,newTime);
+        user.ifPresent(room::setOwner);
+        roomRepository.save(room);
+        return room.getRoomCode();
+    }
+
     public List<RoomResponse> getRoomsByType(Principal principal, BoardType boardType) {
         Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
         User currentUser = optionalUser.orElse(null);
@@ -101,6 +115,10 @@ public class BulletinService {
         roomResponse.setIsMember(isMember);
 
         return roomResponse;
+    }
+    public boolean isAlreadyJoined(User user, Room room) {
+        // 假设有一个方法在你的 repository 中检查用户是否加入了房间
+        return userRoomRepository.existsByUserAndRoom(user, room);
     }
 
 
@@ -213,8 +231,6 @@ public class BulletinService {
         userRoomRepository.save(userRoom);
     }
 
-    public boolean hasUserJoinedRoom(User user, Room room) {
-        return userRoomRepository.existsByUserAndRoom(user, room);
-    }
+
 
 }

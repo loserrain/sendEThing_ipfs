@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import sendeverything.models.User;
 import sendeverything.models.room.BoardType;
+import sendeverything.models.room.DBRoomFile;
 import sendeverything.models.room.Room;
 import sendeverything.models.room.RoomType;
 
@@ -16,6 +17,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     Room findByRoomCode(String roomCode);
     List<Room> findByOwner(User owner);
     List<Room>findByBoardType(BoardType boardType);
+
 
 
 }
