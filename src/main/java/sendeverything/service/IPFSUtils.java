@@ -63,7 +63,7 @@ public class IPFSUtils {
     private SimpMessagingTemplate messagingTemplate;
 
 
-    private final IPFS IPFS = new IPFS("/ip4/127.0.0.1/tcp/5001");
+//    private final IPFS IPFS = new IPFS("/ip4/140.130.33.152/tcp/5001");
 
 
 //    private final ExecutorService executorService = Executors.newFixedThreadPool(10); // 根据需要调整线程池大小
@@ -80,7 +80,7 @@ public class IPFSUtils {
      */
 
     private final String clusterApiUrl = "http://your-cluster-ip:9094";
-//    private final IPFS IPFS = new IPFS("/ip4/127.0.0.1/tcp/5001");
+    private final IPFS IPFS = new IPFS("/ip4/140.130.33.153/tcp/5001");
 //    private final IPFS IPFS = new IPFS("/ip4/140.130.33.153/tcp/5001");
 //    private final IPFS IPFS = new IPFS("/ip4/169.254.183.111/tcp/5001");
 
@@ -253,7 +253,7 @@ public class IPFSUtils {
             System.out.println("Unpinned CID: " + cid);
         }
 
-        IPFS.repo.gc();
+
         dbFileRepository.delete(dbFile);
         System.out.println("Garbage collection executed.");
     }

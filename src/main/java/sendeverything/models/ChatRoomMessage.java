@@ -21,6 +21,7 @@ public class ChatRoomMessage {
     private String content;
     private String sender;
     private String roomCode;
+    private Integer userCurrentCount;
     @Indexed(direction = IndexDirection.DESCENDING)
     private LocalDateTime timestamp;  // 自動設置當前時間為消息時間
 

@@ -24,6 +24,20 @@ public class UserRoom {
 
     private LocalDateTime joinedAt; // 加入时间
 
+    @Lob
+    @Column(name = "user_public_key", columnDefinition = "TEXT")
+    private String userPublicKey; // 用户公钥
+
+    @Lob
+    @Column(name = "user_private_key", columnDefinition = "TEXT")
+    private String userPrivateKey; // 用户私钥
+
+    @Lob
+    @Column(name = "user_shared_key", columnDefinition = "TEXT")
+    private String userSharedKey; // 用户共享密钥
+
+    private Integer userCount; // 用户数量
+
     public UserRoom() {
 
     }

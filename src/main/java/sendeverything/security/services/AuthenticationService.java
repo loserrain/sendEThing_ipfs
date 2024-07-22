@@ -74,7 +74,10 @@ public class AuthenticationService {
     }
 
 
-
+    public String getImgUrl(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User Not Found with username: " + username));
+        return user.getImgUrl();
+    }
 
 
 
@@ -97,7 +100,8 @@ public class AuthenticationService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .accessToken(jwtToken)
-                .profileImageBase64(profileImageBase64)
+                .imgUrl(user.getImgUrl())
+                .profileImage(profileImageBase64)
                 .build();
     }
 
@@ -153,20 +157,22 @@ public class AuthenticationService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        String profileImageBase64 = convertBlobToBase64(userDetails.getProfileImage());
+
 
         return UserInfoResponse.builder()
                 .id(userDetails.getId())
                 .username(userDetails.getUsername())
                 .email(userDetails.getEmail())
                 .roles(roles)
-                .profileImageBase64(profileImageBase64)
+                .imgUrl(userDetails.getImgUrl())
+                .profileImage(getProfileImageBase64(username))
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
                 .jwtCookie(jwtCookie)
                 .RefreshTokenCookie(refreshTokenCookie)
                 .build();
     }
+
     public String convertBlobToBase64(Blob imageBlob) throws SQLException, IOException {
         InputStream inputStream = imageBlob.getBinaryStream();
         byte[] bytes = inputStream.readAllBytes();
@@ -195,6 +201,7 @@ public class AuthenticationService {
         if (userRepository.existsByUsername(username)) {
             return new MessageResponse("Error: Username is already taken!");
         }
+
         User user = new User(username,
                 email,
                 encoder.encode(password),

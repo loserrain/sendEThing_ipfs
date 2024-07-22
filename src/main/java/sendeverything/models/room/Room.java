@@ -41,7 +41,15 @@ public class Room {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DBRoomFile> dbRoomFiles = new ArrayList<>();
 
-    public Room(String roomCode, String title, String description, String password, Blob image, RoomType roomType,BoardType boardType, LocalDateTime createTime) {
+    @Lob
+    @Column(name = "room_prime", nullable = false,columnDefinition = "TEXT")
+    private String roomPrime;
+
+    @Lob
+    @Column(name = "init_Vector", nullable = false,columnDefinition = "TEXT")
+    private String initVector;
+
+    public Room(String roomCode, String title, String description, String password, Blob image, RoomType roomType,BoardType boardType, LocalDateTime createTime, String roomPrime, String initVector) {
         this.roomCode = roomCode;
         this.title = title;
         this.description = description;
@@ -50,7 +58,8 @@ public class Room {
         this.roomType = roomType;
         this.boardType = boardType;
         this.createTime = createTime;
-
+        this.roomPrime = roomPrime;
+        this.initVector = initVector;
     }
 
 

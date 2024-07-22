@@ -63,6 +63,7 @@ public class User {
     this.password = password;
     this.provider = provider;
     this.profileImage = profileImage;
+
   }
 
 

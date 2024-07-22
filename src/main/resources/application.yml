@@ -1,8 +1,24 @@
-
+#logging:
+#  level:
+#    org:
+#      apache:
+#        tomcat: DEBUG
+#      springframework:
+#        web: DEBUG
 spring:
 
+  codec:
+    max-in-memory-size: 16MB
+
+
   datasource:
-    url: jdbc:mysql://localhost:3306/testdb_spring?allowPublicKeyRetrieval=true&useSSL=false
+    hikari:
+      maximum-pool-size: 100
+      minimum-idle: 10
+      idle-timeout: 60000
+      max-lifetime: 1800000
+    #    url: jdbc:mysql://localhost:3306/testdb_spring?allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://172.17.0.3:3306/testdb_spring?allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: "0000"
   jpa:
@@ -18,9 +34,10 @@ spring:
       client:
         registration:
           google:
-            client-id: 792037345123-bk9hgdf72vo5d3g5e996j36go814uhs1.apps.googleusercontent.com
-            client-secret: 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
+            client-id: 792037345123-kiukagb0tbiflf1vnq791enk0dtpi19m.apps.googleusercontent.com
+            client-secret: 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
             scope: openid,profile,email
+            redirect-uri: https://imbig404.com/login/oauth2/code/google
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/auth
@@ -53,7 +70,7 @@ spring:
       filename: test
   data:
     mongodb:
-      uri: mongodb://root:0000@localhost:27017/chatdb?authSource=admin
+      uri: mongodb://root:0000@172.17.0.4:27017/chatdb?authSource=admin
 
     redis:
       host: localhost
@@ -75,6 +92,16 @@ bezkoder:
     SecretAccessKey: d24dhf1z9Fj6jd6Cn7A2u4u62Xnjh3Z09RvUQsxl
     endpoint: https://s3.filebase.com
 server:
-  port: 8088
+  tomcat:
+    max-threads: 1000
+
+  #  ssl:
+  #    key-store: classpath:keystore.p12
+  #    key-store-password: "0000"
+  #    keyStoreType: PKCS12
+  #    keyAlias: tomcat
+  port: 8080
+
+
 
 

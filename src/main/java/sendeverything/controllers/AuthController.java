@@ -26,8 +26,8 @@ import java.sql.SQLException;
 import java.util.Base64;
 
 //for Angular Client (withCredentials)
-@CrossOrigin(origins = "http://localhost:8080, http://localhost:8081, http://localhost:8080", maxAge = 3600, allowCredentials="true")
-//@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(origins = "http://localhost:8080, http://localhost:8081, http://localhost:8080", maxAge = 3600, allowCredentials="true")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -60,7 +60,7 @@ public class AuthController {
 //  }
 
   @GetMapping("/oauth2/redirect")
-  public ResponseEntity<?> oauth2Redirect(@CookieValue(name = "sendEverything", required = false) String jwt) {
+  public ResponseEntity<?> oauth2Redirect(@CookieValue(name = "sendEveryThing", required = false) String jwt) {
     if (jwt != null) {
       String username = jwtUtils.getUserNameFromJwtToken(jwt);
       UserInfoResponse userInfoResponse = service.processOAuthPostLogin(username);
@@ -73,8 +73,6 @@ public class AuthController {
       return ResponseEntity.badRequest().body(new MessageResponse("Error: Login failed!"));
     }
   }
-
-
 
 
 

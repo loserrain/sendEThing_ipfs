@@ -13,11 +13,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import sendeverything.models.DatabaseFile;
 import sendeverything.models.FileChunk;
+import sendeverything.models.SpeedTest;
 import sendeverything.models.User;
+import sendeverything.payload.request.SpeedTestRequest;
 import sendeverything.payload.response.FileNameResponse;
 import sendeverything.payload.response.FileResponse;
 import sendeverything.repository.DatabaseFileRepository;
 import sendeverything.repository.FileChunkRepository;
+import sendeverything.repository.SpeedTestRepository;
 import sendeverything.repository.UserRepository;
 import sendeverything.service.CodeGenerator;
 import sendeverything.service.IPFSUtils;
@@ -37,8 +40,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
-@CrossOrigin(origins = {"http://localhost", "http://localhost:8081, http://localhost:8080"}, allowCredentials = "true")
+@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(origins = {"http://localhost", "http://localhost:8081, http://localhost:8080"}, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/auth")
 public class IPFSController {
@@ -52,7 +55,8 @@ public class IPFSController {
     private DatabaseFileRepository dbFileRepository;
     @Autowired
     private IPFSUtils IPFSUtils;
-
+    @Autowired
+    private SpeedTestRepository speedTestRepository;
 
     @GetMapping("getFiles")
     public ResponseEntity<?> getFiles(Principal principal) {
@@ -263,6 +267,12 @@ public class IPFSController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    @PostMapping("speedTest")
+    public ResponseEntity<?> speedTest(@RequestBody SpeedTestRequest speedTestRequest) {
+        speedTestRepository.save(new SpeedTest(speedTestRequest.getFileName(), speedTestRequest.getSpeed()));
+        System.out.println("SpeedTest: " +speedTestRequest.getFileName() + " " + speedTestRequest.getSpeed());
+        return ResponseEntity.ok().build();
     }
 }
 

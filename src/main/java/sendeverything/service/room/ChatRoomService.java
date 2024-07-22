@@ -10,20 +10,16 @@ import sendeverything.models.User;
 import sendeverything.models.room.DBRoomFile;
 import sendeverything.models.room.Room;
 import sendeverything.models.room.RoomType;
+import sendeverything.models.room.UserRoom;
 import sendeverything.payload.request.ChatMessage;
-import sendeverything.payload.response.BigChatRoomResponse;
-import sendeverything.payload.response.ChatRoomFileResponse;
-import sendeverything.payload.response.FileNameResponse;
-import sendeverything.payload.response.RoomResponse;
+import sendeverything.payload.response.*;
 import sendeverything.repository.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ChatRoomService {
@@ -45,17 +41,28 @@ public class ChatRoomService {
     public List<ChatRoomMessage> getMessagesBefore(String roomCode, LocalDateTime lastTimestamp,int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "timestamp"));
         return chatRoomMessageRepository.findMessagesBeforeDate(roomCode, lastTimestamp, pageable);
-        }
+    }
+
+//    TESTTTTTTTTTTTTTTTTT
+    public List<ChatRoomMessage> getMessagesDateToDate(String roomCode, LocalDateTime lastTimestamp, LocalDateTime test,int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "timestamp"));
+        return chatRoomMessageRepository.findMessagesDateAndDate(roomCode, lastTimestamp, test, pageable);
+    }
+
     public ChatRoomMessage saveMessage(ChatMessage chatMessage) {
         LocalDateTime now = LocalDateTime.now();
         System.out.println("now"+ now);
-
+        int totalUserCount = 0;
         ChatRoomMessage chatRoomMessage = new ChatRoomMessage();
         chatRoomMessage.setContent(chatMessage.getContent());
         chatRoomMessage.setRoomCode(chatMessage.getRoomCode());
         chatRoomMessage.setSender(chatMessage.getSender());
         chatRoomMessage.setTimestamp(now);
         chatRoomMessage.setType(chatMessage.getType());
+        for(Integer userCount : userRoomRepository.findUserCountByRoomCode(chatMessage.getRoomCode())) {
+            totalUserCount += userCount;
+        }
+        chatRoomMessage.setUserCurrentCount(totalUserCount);
 
         chatRoomMessageRepository.save(chatRoomMessage);
         return chatRoomMessage;
@@ -126,6 +133,7 @@ public class ChatRoomService {
                 .chatRoomCode(userRoom)
                 .chatRoomDescription(chatRoomInfo.getDescription())
                 .chatRoomType(chatRoomInfo.getRoomType().toString())
+                .chatRoomUserCount(chatRoomMessage.getUserCurrentCount())
                 .build();
     }
 
@@ -152,4 +160,37 @@ public class ChatRoomService {
         return room.getRoomType().equals(RoomType.SECRET);
     }
 
-}
+    public List<ChatKeyAndVectorResponse> getSharedKeysByUser(String username,String roomType) {
+        List<UserRoom> userRoom = new ArrayList<>();
+        User user=userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Error: User not found."));
+        if (roomType.equals("SECRET")){
+            List<UserRoom> userRoom1 = userRoomRepository.findByUserAndSecretRoomType(user);
+            userRoom.addAll(userRoom1);
+        }else{
+            List<UserRoom> userRoom1 = userRoomRepository.findByUserAndNotSecretRoomType(user);
+            userRoom.addAll(userRoom1);
+        }
+        System.out.println("userRoom:"+userRoom);
+        List<ChatKeyAndVectorResponse> roomCodeAndKeyInitVector = new ArrayList<>();
+
+        for(UserRoom ur : userRoom) {
+                System.out.println("urRoomType:"+ur.getRoom().getRoomType());
+                ChatKeyAndVectorResponse roomCodeAndKeyMap = new ChatKeyAndVectorResponse();
+                String roomCode = ur.getRoom().getRoomCode();
+                String initVector = roomRepository.findByRoomCode(roomCode).getInitVector();
+                roomCodeAndKeyMap.setRoomCode(roomCode);
+                roomCodeAndKeyMap.setUserPublicKey(ur.getUserSharedKey());
+                roomCodeAndKeyMap.setUserPrivateKey(ur.getUserPrivateKey());
+                roomCodeAndKeyMap.setRoomVector(initVector);
+                roomCodeAndKeyInitVector.add(roomCodeAndKeyMap);
+
+            } return roomCodeAndKeyInitVector;
+        }
+
+
+
+
+
+    }
+
+

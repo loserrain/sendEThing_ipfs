@@ -24,7 +24,7 @@ public class CustomerOAuth2SuccessHandler implements AuthenticationSuccessHandle
         response.addHeader("Set-Cookie", jwtCookie.toString());
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
         response.setStatus(HttpServletResponse.SC_OK);
-        response.sendRedirect("http://localhost:8081/checkGoogle");
+        response.sendRedirect("https://imbig404.com/checkGoogle");
     }
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {

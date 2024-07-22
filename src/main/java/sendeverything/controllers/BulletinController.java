@@ -11,23 +11,30 @@ import org.springframework.web.multipart.MultipartFile;
 import sendeverything.models.User;
 import sendeverything.models.room.*;
 import sendeverything.payload.request.BoardRequest;
+import sendeverything.payload.request.RoomCodeRequest;
 import sendeverything.payload.request.RoomRequest;
 import sendeverything.payload.response.RoomCodeResponse;
 import sendeverything.payload.response.RoomContentResponse;
 import sendeverything.payload.response.RoomResponse;
+import sendeverything.repository.ChatRoomMessageRepository;
+import sendeverything.repository.RoomRepository;
 import sendeverything.repository.UserRepository;
+import sendeverything.repository.UserRoomRepository;
 import sendeverything.security.services.AuthenticationService;
 import sendeverything.service.room.BulletinService;
 import sendeverything.service.room.ChatRoomService;
 import software.amazon.awssdk.services.s3.model.MultipartUpload;
 
+import java.math.BigInteger;
 import java.security.Principal;
 import java.sql.Blob;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-@CrossOrigin(origins = {"http://localhost", "http://localhost:8081, http://localhost:8080"}, allowCredentials = "true")
+@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(origins = {"http://localhost", "http://localhost:8081, http://localhost:8080"}, allowCredentials = "true")
 @RestController
 @RequestMapping("/api/auth")
 public class BulletinController {
@@ -39,7 +46,12 @@ public class BulletinController {
     private ChatRoomService chatRoomService;
     @Autowired
     private AuthenticationService authenticationService;
-
+    @Autowired
+    private UserRoomRepository userRoomRepository;
+    @Autowired
+    private ChatRoomMessageRepository chatRoomMessageRepository;
+    @Autowired
+    private RoomRepository roomRepository;
 
 
     @PostMapping("/createRoom")
@@ -49,6 +61,10 @@ public class BulletinController {
                                        @RequestParam String roomPassword,
                                        @RequestParam MultipartFile roomImage,
                                        @RequestParam BoardType boardType,
+                                       @RequestParam String userPublicKey,
+                                       @RequestParam String userPrivateKey,
+                                       @RequestParam String roomPrime,
+                                       @RequestParam String initVector,
                                        Principal principal) throws Exception {
         System.out.println("title: "+boardType);
         Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
@@ -56,22 +72,22 @@ public class BulletinController {
         System.out.println("optionalUser: "+optionalUser);
 
         if (!(roomType.equals(RoomType.SECRET))) {
-            String roomCode = bulletinService.saveRoom(title, roomDescription, roomPassword, roomImage, optionalUser, roomType, boardType);
+            String roomCode = bulletinService.saveRoom(title, roomDescription, roomPassword, roomImage, optionalUser, roomType, boardType, roomPrime, initVector);
 
             return ResponseEntity.ok(new RoomCodeResponse(roomCode)) ;
         }else{
             assert principal != null;
             String username= principal.getName();
             Blob image= authenticationService.convertBase64ToBlob(authenticationService.getProfileImageBase64(username));
-            String roomCode = bulletinService.saveSecretRoom(title, roomDescription, roomPassword, image, optionalUser, roomType, boardType);
-
+            String roomCode = bulletinService.saveSecretRoom(title, roomDescription, roomPassword, image, optionalUser, roomType, boardType, roomPrime, initVector);
+            System.out.println("roomCoderoomCoderoomCoderoomCoderoomCode: "+roomCode);
 
             Room room = bulletinService.findByRoomCode1(roomCode);
             if(bulletinService.isAlreadyJoined(optionalUser.orElse(null),room)){
                 return ResponseEntity.ok("Create Room Success: "+roomCode);
             }
-            bulletinService.joinRoom(optionalUser.orElse(null),room );
-
+            bulletinService.joinRoomAndCountJudge(optionalUser.orElse(null),room , userPublicKey, userPrivateKey, roomCode);
+            bulletinService.saveRoomSharedKey(roomCode);
             return ResponseEntity.ok(new RoomCodeResponse(roomCode)) ;
 
         }
@@ -99,8 +115,15 @@ public class BulletinController {
         String roomCode = roomRequest.getRoomCode();
         String password = roomRequest.getPassword();
         String roomType = roomRequest.getRoomType();
+        String userPublicKey = roomRequest.getUserPublicKey();
+        String userPrivateKey = roomRequest.getUserPrivateKey();
+
+//        bulletinService.userCountJudge(roomCode);
 
         Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
+        if(principal == null){
+            return ResponseEntity.ok("Access Room Success: "+roomCode);
+        }
         Room room= bulletinService.findByRoomCode1(roomCode);
         RoomResponse roomResponse = bulletinService.accessRoom(roomCode, password);
         System.out.println("roomResponse: "+roomRequest);
@@ -108,7 +131,8 @@ public class BulletinController {
             if(bulletinService.isAlreadyJoined(optionalUser.orElse(null),room)){
                 return ResponseEntity.ok("Access Room Success: "+roomCode);
             }
-            bulletinService.joinRoom(optionalUser.orElse(null),room );
+
+            bulletinService.joinRoomAndCountJudge(optionalUser.orElse(null),room, userPublicKey, userPrivateKey, roomCode);
             return ResponseEntity.ok("Access Room Success: "+roomCode);
         }
         if (roomResponse != null ) {
@@ -123,7 +147,8 @@ public class BulletinController {
             if(bulletinService.isAlreadyJoined(optionalUser.orElse(null),room)){
                 return ResponseEntity.ok("Access Room Success: "+roomCode);
             }
-            bulletinService.joinRoom(optionalUser.orElse(null),room );
+
+            bulletinService.joinRoomAndCountJudge(optionalUser.orElse(null),room, userPublicKey, userPrivateKey, roomCode);
             System.out.println("cookie: "+cookie.getValue());
             return ResponseEntity.ok("Access Room Success: "+roomCode);
         } else {
@@ -155,14 +180,39 @@ public class BulletinController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: No valid cookie found");
     }
 
-//    @PostMapping("/showRoomContent")
-//    public ResponseEntity<?> showRoomContent(@RequestBody RoomRequest RoomRequest) {
-//        String roomCode = RoomRequest.getRoomCode();
-//
-//        RoomResponse roomResponse = bulletinService.findByRoomCode(roomCode);
-//
-//        return ResponseEntity.ok(roomResponse);
-//    }
+//    查詢用戶在該聊天室的歷史訊息中的每個共享密鑰為何
+    @PostMapping("/getChatMessageHistorySharedKey")
+    public ResponseEntity<?> getChatMessageHistorySharedKey(@RequestBody RoomCodeRequest roomCode, Principal principal) {
+        Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
+        Map<Integer, String> result = bulletinService.calChatMessageSharedKey(optionalUser.orElse(null),  roomCode.getRoomCode());
+//        List<String> resultAsString = result.stream()
+//                .map(BigInteger::toString)
+//                .toList();
+        System.out.println("Result: "+result);
+//        System.out.println("bulletinService.calChatMessageSharedKey: "+bulletinService.calChatMessageSharedKey(optionalUser.orElse(null),  roomCode.getRoomCode()));
+
+        return ResponseEntity.ok(result);
+    }
+
+//    查詢用戶在該聊天室的共享密鑰為何
+    @PostMapping("/getChatMessageKeyAndIV")
+    public ResponseEntity<?> getChatMessageSharedKey(@RequestBody RoomCodeRequest roomCode, Principal principal) {
+        Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
+        String chatRoomIV = roomRepository.findByRoomCode(roomCode.getRoomCode()).getInitVector();
+        UserRoom userRoom = userRoomRepository.findUserByRoomCodesAndUser(roomCode.getRoomCode(), optionalUser.orElse(null));
+        String userSharedKey = userRoom.getUserSharedKey();
+        String userPrivateKey = userRoom.getUserPrivateKey();
+//        System.out.println("userPrivateKey: "+userPrivateKey);
+//        System.out.println("userSharedKey: "+userSharedKey);
+        Map<String, String> sharedKeyAndIV = new HashMap<>();
+        sharedKeyAndIV.put("PrivateKey", userPrivateKey);
+        sharedKeyAndIV.put("PublicKey", userSharedKey);
+        sharedKeyAndIV.put("ChatRoomIV", chatRoomIV);
+
+//        List<String> sharedKeyAndIV = List.of(userPrivateKey, userSharedKey, chatRoomIV);
+        return ResponseEntity.ok(sharedKeyAndIV);
+    }
+
 
     @PostMapping("/showRoomContent")
     public ResponseEntity<?> showRoomContent(@RequestBody RoomRequest roomRequest,Principal principal){

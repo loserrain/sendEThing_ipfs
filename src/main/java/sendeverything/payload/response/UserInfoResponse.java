@@ -20,7 +20,8 @@ public class UserInfoResponse {
 	private String email;
 	private List<String> roles;
 	private String provider;
-	private String profileImageBase64;
+	private String imgUrl;
+	private String profileImage;
 	private String accessToken;
 	private String refreshToken;
 	private ResponseCookie jwtCookie;

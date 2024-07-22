@@ -31,17 +31,20 @@ public class UserDetailsImpl implements UserDetails {
 
   private Collection<? extends GrantedAuthority> authorities;
 
+  private String imgUrl;
+
   private Blob profileImage;
 
   private String provider;
 
-  public UserDetailsImpl(Long id, String username, String email, String password,Blob profileImage,
+  public UserDetailsImpl(Long id, String username, String email, String password,Blob profileImage, String imgUrl,
       Collection<? extends GrantedAuthority> authorities) {
     this.id = id;
     this.username = username;
     this.email = email;
     this.password = password;
     this.profileImage = profileImage;
+    this.imgUrl = imgUrl;
     this.authorities = authorities;
   }
 
@@ -56,6 +59,7 @@ public class UserDetailsImpl implements UserDetails {
         user.getEmail(),
         user.getPassword(),
         user.getProfileImage(),
+        user.getImgUrl(),
         authorities);
   }
 
