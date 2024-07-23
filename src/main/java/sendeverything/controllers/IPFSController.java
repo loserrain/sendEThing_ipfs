@@ -3,24 +3,20 @@ package sendeverything.controllers;
 import com.google.zxing.WriterException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import sendeverything.models.DatabaseFile;
 import sendeverything.models.FileChunk;
-import sendeverything.models.SpeedTest;
 import sendeverything.models.User;
 import sendeverything.payload.request.SpeedTestRequest;
 import sendeverything.payload.response.FileNameResponse;
 import sendeverything.payload.response.FileResponse;
 import sendeverything.repository.DatabaseFileRepository;
 import sendeverything.repository.FileChunkRepository;
-import sendeverything.repository.SpeedTestRepository;
 import sendeverything.repository.UserRepository;
 import sendeverything.service.CodeGenerator;
 import sendeverything.service.IPFSUtils;
@@ -30,15 +26,11 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.sql.Blob;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 //@CrossOrigin(origins = {"http://localhost", "http://localhost:8081, http://localhost:8080"}, allowCredentials = "true")
@@ -55,13 +47,11 @@ public class IPFSController {
     private DatabaseFileRepository dbFileRepository;
     @Autowired
     private IPFSUtils IPFSUtils;
-    @Autowired
-    private SpeedTestRepository speedTestRepository;
 
     @GetMapping("getFiles")
     public ResponseEntity<?> getFiles(Principal principal) {
         Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
-        if(optionalUser.isEmpty()){
+        if (optionalUser.isEmpty()) {
             return ResponseEntity.ok().body("User is not logged in!");
         }
         List<DatabaseFile> dbFiles = dbFileRepository.findAllByUserOrderByTimestampDesc(optionalUser.orElse(null));
@@ -73,20 +63,19 @@ public class IPFSController {
                     LocalDateTime createTimeTwoDaysLater = file.getTimestamp().plusDays(2);
                     Duration remainingDuration = Duration.between(now, createTimeTwoDaysLater);
                     long remainingDays = remainingDuration.toDays(); // 可以選擇以天數來表示
-                    long remainingHours = remainingDuration.toHours()%24; // 或者以小時數來表示
-                    String remainingTimeFormatted = remainingDays + "D " + remainingHours+"H";  // 1 D 23:59
+                    long remainingHours = remainingDuration.toHours() % 24; // 或者以小時數來表示
+                    String remainingTimeFormatted = remainingDays + "D " + remainingHours + "H";  // 1 D 23:59
                     return new FileNameResponse(
                             file.getFileName(),
                             file.getVerificationCode(),
                             file.getFileSize(),
-                            file.getTimestamp()                            ,
+                            file.getTimestamp(),
                             remainingTimeFormatted // or remainingDuration in any other unit you prefer
                     );
                 })
                 .toList();
         return ResponseEntity.ok().body(fileNameResponses);
     }
-
 
 
     @PostMapping("/uploadChunk")
@@ -109,7 +98,7 @@ public class IPFSController {
                 // 再次检查确保没有其他线程已经创建了文件
                 dbFile = dbFileRepository.findByFileId(fileId).orElse(null);
                 if (dbFile == null) {
-                    dbFile = IPFSUtils.storeFile(fileId, outputFileName, optionalUser,fileSize);
+                    dbFile = IPFSUtils.storeFile(fileId, outputFileName, optionalUser, fileSize);
                 }
             }
         }
@@ -149,18 +138,16 @@ public class IPFSController {
         }
 
 
-        System.out.println(username +"completeUpload : " + dbFile.getFileName() +" VerificationCode : "+dbFile.getVerificationCode());
+        System.out.println(username + "completeUpload : " + dbFile.getFileName() + " VerificationCode : " + dbFile.getVerificationCode());
 
 
-
-        return new FileResponse(dbFile.getVerificationCode(),"");
+        return new FileResponse(dbFile.getVerificationCode(), "");
     }
-
 
 
     @GetMapping("/downloadFileByCode/{verificationCode}/{uuid}")
     public ResponseEntity<?> downloadFile(@PathVariable String verificationCode,
-                                          @PathVariable String uuid,HttpServletResponse response) {
+                                          @PathVariable String uuid, HttpServletResponse response) {
         try {
             DatabaseFile dbFile = IPFSUtils.findByVerificationCode(verificationCode);
             if (dbFile == null) {
@@ -172,14 +159,11 @@ public class IPFSController {
 //
             response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(dbFile.getFileSize()));
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFileName);
-            response.setHeader(HttpHeaders.CONTENT_TYPE,"application/octet-stream");
+            response.setHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
             response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
 
 
-
-
-
-            IPFSUtils.writeToResponseStreamConcurrently3(dbFile, response,uuid);
+            IPFSUtils.writeToResponseStreamConcurrently3(dbFile, response, uuid);
             System.out.println(response.getHeader(HttpHeaders.CONTENT_DISPOSITION));
             return ResponseEntity.ok().build();
 
@@ -189,31 +173,6 @@ public class IPFSController {
         }
 
 
-
-
-
-
-//    @GetMapping("/download/{hash}")
-//    public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable String hash) {
-//        try {
-//
-//            DatabaseFile dbFile = IPFSUtils.findByCid(hash);
-//            byte[] data = IPFSUtils.download(hash);
-//            if (data != null) {
-//                ByteArrayResource resource = new ByteArrayResource(data);
-//                assert dbFile != null;
-//                return ResponseEntity.ok()
-//                        .contentLength(data.length)
-//                        .header("Content-Disposition", "attachment; filename=\"" + dbFile.getFileName() + "\"")
-//                        .body(resource);
-//            } else {
-//                return ResponseEntity.notFound().build();
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.internalServerError().build();
-//        }
-//    }
     }
 
 
@@ -235,6 +194,7 @@ public class IPFSController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     @GetMapping("/getFileNameByCode/{verificationCode}")
     public ResponseEntity<?> getFileNameByCode(@PathVariable String verificationCode) {
         try {
@@ -268,12 +228,7 @@ public class IPFSController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @PostMapping("speedTest")
-    public ResponseEntity<?> speedTest(@RequestBody SpeedTestRequest speedTestRequest) {
-        speedTestRepository.save(new SpeedTest(speedTestRequest.getFileName(), speedTestRequest.getSpeed()));
-        System.out.println("SpeedTest: " +speedTestRequest.getFileName() + " " + speedTestRequest.getSpeed());
-        return ResponseEntity.ok().build();
-    }
+
 }
 
 

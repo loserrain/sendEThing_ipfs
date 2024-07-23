@@ -80,7 +80,7 @@ public class IPFSUtils {
      */
 
     private final String clusterApiUrl = "http://your-cluster-ip:9094";
-    private final IPFS IPFS = new IPFS("/ip4/140.130.33.153/tcp/5001");
+    private final IPFS IPFS = new IPFS("/ip4/127.0.0.1/tcp/5001");
 //    private final IPFS IPFS = new IPFS("/ip4/140.130.33.153/tcp/5001");
 //    private final IPFS IPFS = new IPFS("/ip4/169.254.183.111/tcp/5001");
 
@@ -210,24 +210,6 @@ public class IPFSUtils {
         }
     }
 
-
-    //    public void writeToResponseStreamConcurrently(DatabaseFile dbFile, HttpServletResponse response) throws IOException, InterruptedException, ExecutionException {
-//
-//        List<FileChunk> chunks = fileChunkRepository.findByDatabaseFileOrderByChunkNumberAsc(dbFile);
-//        List<Callable<Void>> tasks = new ArrayList<>();
-//
-//        for (FileChunk chunk : chunks) {
-//            tasks.add(() -> {
-//                byte[] data = downloadChunk(chunk.getCid());
-//                synchronized (response) {
-//                    response.getOutputStream().write(data);
-//                }
-//                return null;
-//            });
-//        }
-//
-//        executorService.invokeAll(tasks);
-//    }
     private  String generateUniqueVerificationCode() {
         Random random = new Random();
         String verificationCode;

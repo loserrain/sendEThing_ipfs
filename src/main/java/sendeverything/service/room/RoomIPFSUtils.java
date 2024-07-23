@@ -62,7 +62,7 @@ public class RoomIPFSUtils {
     /**
      * ipfs的服务器地址和端口,替换成自己的ip，port
      */
-    private final IPFS IPFS = new IPFS("/ip4/140.130.33.153/tcp/5001");
+    private final IPFS IPFS = new IPFS("/ip4/127.0.0.1/tcp/5001");
 //    private final IPFS IPFS = new IPFS("/ip4/140.130.33.153/tcp/5001");
 //    private final IPFS IPFS = new IPFS("/ip4/169.254.183.111/tcp/5001");
 
