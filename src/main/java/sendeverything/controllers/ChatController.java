@@ -51,7 +51,7 @@ public class ChatController {
     @Autowired
     private ChatRoomMessageRepository chatRoomMessageRepository;
 
-
+    //使用者發送訊息，並根據使用者名稱取得使用者頭像
     @MessageMapping("/chat.sendMessage/{roomCode}")
     @SendTo("/topic/{roomCode}")
     public ChatImageDTO sendMessage(
@@ -68,6 +68,7 @@ public class ChatController {
 
     }
 
+    //使用者加入聊天室，並判斷是否已經加入過
     @MessageMapping("/join.joinMessage/{roomCode}")
     @SendTo("/topic/{roomCode}")
     public ChatImageDTO joinMessage(
@@ -109,6 +110,8 @@ public class ChatController {
 
         return chatMessage;
     }
+
+    //取得聊天室訊息
     @PostMapping("/getMessages")
     public List<ChatImageDTO> getMessagesBefore(@RequestBody RoomCodeRequest roomCodeRequest, Principal principal) throws SQLException, IOException {
             String roomCode = roomCodeRequest.getRoomCode();
@@ -124,7 +127,7 @@ public class ChatController {
 
 
 
-            List<ChatRoomMessage> chatRoomMessages = chatRoomService.getMessagesBefore(roomCode, lastTimestamp,20);
+
             List<ChatImageDTO> chatImageDTOS = new ArrayList<ChatImageDTO>();
 
             for (ChatRoomMessage chatRoomMessage : testMessages) {
@@ -132,7 +135,7 @@ public class ChatController {
                 String senderImage= authenticationService.getProfileImageBase64(username);
 //                String senderImage= authenticationService.getImgUrl(username);
 
-                chatImageDTOS.add(new ChatImageDTO(chatRoomMessage, senderImage));
+                chatImageDTOS.add(new ChatImageDTO(chatRoomMessage,  senderImage));
             }
             return chatImageDTOS;
 

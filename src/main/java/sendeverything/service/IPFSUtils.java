@@ -95,7 +95,6 @@ public class IPFSUtils {
 
 
 
-
     public  synchronized DatabaseFile storeFile(String fileId, String outputFileName, Optional<User> user,Long filesize){
         // 这里不需要再次检查文件是否存在，因为这已在调用此方法之前检查过
         LocalDateTime createTime = LocalDateTime.now();
@@ -147,7 +146,7 @@ public class IPFSUtils {
     }
 
 
-
+    // 更新下载进度
     public void updateDownloadProgress(String uuid, double progress) {
 
         messagingTemplate.convertAndSend("/topic/downloadProgress/" + uuid, progress);
@@ -155,7 +154,7 @@ public class IPFSUtils {
     }
 
 
-
+    //從資料庫取得檔案分片並寫入響應流
     public void writeToResponseStreamConcurrently3(DatabaseFile dbFile, HttpServletResponse response, String uuid) throws IOException {
         List<FileChunk> chunks = fileChunkRepository.findByDatabaseFileOrderByChunkNumberAsc(dbFile);
         int totalChunks = chunks.size();

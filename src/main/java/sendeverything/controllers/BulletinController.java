@@ -95,21 +95,17 @@ public class BulletinController {
 
 
     }
+    //取得所有房間根據前端選擇的房間類型
     @PostMapping("/getAllRooms")
     public ResponseEntity<List<RoomResponse>> getAllRooms(Principal principal,@RequestBody BoardRequest boardRequest) {
         BoardType boardType = boardRequest.getBoardType();
-//        String username1 = principal.getName();
-//        List<UserRoom>userRooms= chatRoomService.getRoomsByUser(username1);
-//        for (UserRoom userRoom : userRooms) {
-//            System.out.println("user"+userRoom.getRoom().getRoomCode());
-//
-//        }
 
         List<RoomResponse> roomResponses = bulletinService.getRoomsByType(principal,boardType);
         System.out.println("roomResponses: "+roomResponses);
         return ResponseEntity.ok(roomResponses);
     }
 
+    //使用者第一次進入房間時，將使用者的公鑰和私鑰存入資料庫
     @PostMapping("/accessRoom")
     public ResponseEntity<?> accessRoom(@RequestBody RoomRequest roomRequest, HttpServletResponse response,Principal principal){
         String roomCode = roomRequest.getRoomCode();
@@ -155,6 +151,8 @@ public class BulletinController {
             // 登入失敗處理，例如返回一個錯誤響應
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect room code or password");
         }}
+
+    //確認使用者是否有權限進入房間
     @PostMapping("/verifyCookie")
     public ResponseEntity<String> checkCookie(HttpServletRequest request,@RequestBody RoomRequest RoomRequest) {
         String roomCode = RoomRequest.getRoomCode();
@@ -213,7 +211,7 @@ public class BulletinController {
         return ResponseEntity.ok(sharedKeyAndIV);
     }
 
-
+    //查詢房間內容(包括以上傳的檔案及房間資訊)
     @PostMapping("/showRoomContent")
     public ResponseEntity<?> showRoomContent(@RequestBody RoomRequest roomRequest,Principal principal){
         String roomCode = roomRequest.getRoomCode();

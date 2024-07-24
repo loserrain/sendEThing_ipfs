@@ -39,25 +39,7 @@ public class AuthController {
 
 
 
-//  @GetMapping("/oauth2/redirect")
-//  public ResponseEntity<?> oauth2Redirect(@Valid  HttpServletRequest request ) {
-//    Cookie[] cookies = request.getCookies();
-//    if (cookies != null) {
-//      for (Cookie cookie : cookies) {
-//        if ("jwt".equals(cookie.getName())) {
-//          String jwt = cookie.getValue();
-////          System.out.println("jwt:" + jwt);
-//          String username = jwtUtils.getUserNameFromJwtToken(jwt);
-//          UserInfoResponse userInfoResponse = service.processOAuthPostLogin(username);
-//          ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(username);
-//          System.out.println("username : " + username + " Login Success!");
-//          return ResponseEntity.ok()
-//                  .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-//                  .body(userInfoResponse);
-//        }
-//      }
-//    }return ResponseEntity.badRequest().body(new MessageResponse("Error: Login failed!"));
-//  }
+
 
   @GetMapping("/oauth2/redirect")
   public ResponseEntity<?> oauth2Redirect(@CookieValue(name = "sendEveryThing", required = false) String jwt) {

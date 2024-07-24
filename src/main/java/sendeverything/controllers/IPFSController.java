@@ -48,6 +48,7 @@ public class IPFSController {
     @Autowired
     private IPFSUtils IPFSUtils;
 
+    //取得已登入使用者上傳檔案列表
     @GetMapping("getFiles")
     public ResponseEntity<?> getFiles(Principal principal) {
         Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
@@ -77,7 +78,7 @@ public class IPFSController {
         return ResponseEntity.ok().body(fileNameResponses);
     }
 
-
+    //上傳分片至ipfs
     @PostMapping("/uploadChunk")
     public ResponseEntity<?> uploadChunk(@RequestParam("fileChunk") MultipartFile fileChunk,
                                          @RequestParam("chunkNumber") int chunkNumber,
@@ -90,7 +91,7 @@ public class IPFSController {
         System.out.println("Principal: " + principal);
         Optional<User> optionalUser = principal != null ? userRepository.findByUsername(principal.getName()) : Optional.empty();
 
-        // 先尝试查找文件，避免不必要的同步操作
+        // 檔案存在性檢查
         DatabaseFile dbFile = dbFileRepository.findByFileId(fileId).orElse(null);
 
         if (dbFile == null) {
@@ -104,6 +105,7 @@ public class IPFSController {
         }
 
         System.out.println("Uploading chunk " + chunkNumber + " of file " + fileId);
+        //分片存在性檢查，實施斷點續傳，藉以達到秒傳效果
         FileChunk dbfileChunk = fileChunkRepository.findByChunkIdAndDatabaseFile_FileId(chunkId, fileId).orElse(null);
         if (dbfileChunk == null) {
             IPFSUtils.uploadPart(chunkNumber, dbFile, chunkId, fileChunk, totalChunks);
@@ -114,7 +116,7 @@ public class IPFSController {
             return ResponseEntity.ok("Chunk " + chunkNumber + " already uploaded");
         }
     }
-
+    //完成上傳
     @PostMapping("/completeUpload")
     public FileResponse completeUpload(
             @RequestParam("outputFileName") String outputFileName,
@@ -144,6 +146,7 @@ public class IPFSController {
         return new FileResponse(dbFile.getVerificationCode(), "");
     }
 
+    //透過驗證碼至ipfs取得檔案，透過uuid 使用websocket監控下載進度
 
     @GetMapping("/downloadFileByCode/{verificationCode}/{uuid}")
     public ResponseEntity<?> downloadFile(@PathVariable String verificationCode,
@@ -175,7 +178,7 @@ public class IPFSController {
 
     }
 
-
+    //刪除檔案
     @GetMapping("/cleanupByCode/{verificationCode}")
     public ResponseEntity<?> cleanupResources(@PathVariable String verificationCode) {
         try {
@@ -211,7 +214,7 @@ public class IPFSController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
+    //刪除資料庫檔案
     @GetMapping("/deleteFileByCode/{verificationCode}")
     public ResponseEntity<?> deleteFileByCode(@PathVariable String verificationCode) {
         try {
