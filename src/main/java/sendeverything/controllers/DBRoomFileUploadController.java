@@ -15,7 +15,7 @@ import sendeverything.models.room.DBRoomFile;
 import sendeverything.models.room.DBRoomFileChunk;
 import sendeverything.payload.response.FileResponse;
 import sendeverything.repository.*;
-import sendeverything.service.CodeGenerator;
+
 import sendeverything.service.IPFSUtils;
 import sendeverything.service.room.RoomIPFSUtils;
 
@@ -39,8 +39,7 @@ public class DBRoomFileUploadController {
     private UserRepository userRepository;
     @Autowired
     private DBRoomFileChunkRepository dbRoomFileChunkRepository;
-    @Autowired
-    private CodeGenerator codeGenerator;
+
     @Autowired
     private DBRoomFileRepository dbRoomFileRepository;
     @Autowired

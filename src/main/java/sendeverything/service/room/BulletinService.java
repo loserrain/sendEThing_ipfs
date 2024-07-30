@@ -8,6 +8,7 @@ import sendeverything.exception.RoomNotFoundException;
 import sendeverything.models.ChatRoomMessage;
 import sendeverything.models.User;
 import sendeverything.models.room.*;
+import sendeverything.payload.dto.KeyPairDTO;
 import sendeverything.payload.response.RoomResponse;
 import sendeverything.repository.ChatRoomMessageRepository;
 import sendeverything.repository.RoomRepository;

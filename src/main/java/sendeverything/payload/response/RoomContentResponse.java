@@ -1,7 +1,7 @@
 package sendeverything.payload.response;
 
 import lombok.Data;
-import sendeverything.models.room.DBRoomDTO;
+import sendeverything.payload.dto.DBRoomDTO;
 
 import java.util.List;
 

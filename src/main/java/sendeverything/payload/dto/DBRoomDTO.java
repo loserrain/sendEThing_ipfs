@@ -1,4 +1,4 @@
-package sendeverything.models.room;
+package sendeverything.payload.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

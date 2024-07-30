@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sendeverything.models.DatabaseFile;
-import sendeverything.models.FileNameAndVerifyCodeProjection;
+
 import sendeverything.models.room.DBRoomFile;
 import sendeverything.models.room.DBRoomFileChunk;
 import sendeverything.models.room.Room;

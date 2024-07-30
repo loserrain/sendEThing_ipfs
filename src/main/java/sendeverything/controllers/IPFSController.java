@@ -18,7 +18,7 @@ import sendeverything.payload.response.FileResponse;
 import sendeverything.repository.DatabaseFileRepository;
 import sendeverything.repository.FileChunkRepository;
 import sendeverything.repository.UserRepository;
-import sendeverything.service.CodeGenerator;
+
 import sendeverything.service.IPFSUtils;
 
 import java.io.FileNotFoundException;
@@ -41,8 +41,7 @@ public class IPFSController {
     private UserRepository userRepository;
     @Autowired
     private FileChunkRepository fileChunkRepository;
-    @Autowired
-    private CodeGenerator codeGenerator;
+
     @Autowired
     private DatabaseFileRepository dbFileRepository;
     @Autowired

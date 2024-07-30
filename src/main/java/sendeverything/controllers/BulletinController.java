@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sendeverything.models.User;
 import sendeverything.models.room.*;
+import sendeverything.payload.dto.DBRoomDTO;
 import sendeverything.payload.request.BoardRequest;
 import sendeverything.payload.request.RoomCodeRequest;
 import sendeverything.payload.request.RoomRequest;
@@ -23,9 +24,7 @@ import sendeverything.repository.UserRoomRepository;
 import sendeverything.security.services.AuthenticationService;
 import sendeverything.service.room.BulletinService;
 import sendeverything.service.room.ChatRoomService;
-import software.amazon.awssdk.services.s3.model.MultipartUpload;
 
-import java.math.BigInteger;
 import java.security.Principal;
 import java.sql.Blob;
 import java.util.HashMap;

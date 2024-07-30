@@ -3,7 +3,7 @@ package sendeverything.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import sendeverything.models.User;
-import sendeverything.models.room.KeyPairDTO;
+import sendeverything.payload.dto.KeyPairDTO;
 import sendeverything.models.room.Room;
 import sendeverything.models.room.UserRoom;
 
