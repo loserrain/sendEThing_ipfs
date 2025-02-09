@@ -97,7 +97,7 @@ server:
   #    key-store-password: "0000"
   #    keyStoreType: PKCS12
   #    keyAlias: tomcat
-  port: 8080
+  port: 9090
 
 
 

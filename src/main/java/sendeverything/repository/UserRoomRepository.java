@@ -2,6 +2,7 @@ package sendeverything.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import sendeverything.models.User;
 import sendeverything.payload.dto.KeyPairDTO;
 import sendeverything.models.room.Room;
@@ -9,6 +10,7 @@ import sendeverything.models.room.UserRoom;
 
 import java.util.List;
 
+@Repository
 public interface UserRoomRepository extends JpaRepository<UserRoom, Long> {
     boolean existsByUserAndRoom(User user, Room room);
 //    List<Room> findByUser(User user);
@@ -21,7 +23,7 @@ List<UserRoom> findUsersByRoomCode(String roomCode);
 @Query("SELECT ur.userCount FROM UserRoom ur WHERE ur.room.roomCode = :roomCode")
 List<Integer> findUserCountByRoomCode(String roomCode);
 
-@Query("SELECT new sendeverything.models.room.KeyPairDTO(ur.user.id, ur.userPublicKey, ur.userPrivateKey) FROM UserRoom ur WHERE ur.room.roomCode = :roomCode")
+@Query("SELECT new sendeverything.payload.dto.KeyPairDTO(ur.user.id, ur.userPublicKey, ur.userPrivateKey) FROM UserRoom ur WHERE ur.room.roomCode = :roomCode")
 List<KeyPairDTO> findKeyPairDTOByRoomCode(String roomCode);
 
 @Query("SELECT ur FROM UserRoom ur WHERE ur.room.roomCode = :roomCode AND ur.user = :user")

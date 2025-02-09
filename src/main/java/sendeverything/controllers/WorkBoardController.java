@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigInteger;
 import java.util.Random;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
-//@CrossOrigin(origins = {"http://localhost", "http://localhost:8081, http://localhost:8080"}, allowCredentials = "true")
+//@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = {"http://localhost", "http://localhost:8081, http://localhost:8080"}, allowCredentials = "true")
 @RestController
 
 @RequestMapping("/api/auth")
